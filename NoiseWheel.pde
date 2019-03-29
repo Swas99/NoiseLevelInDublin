@@ -8,11 +8,9 @@ class NoiseWheel implements ActionListener
 {
   JSpinner spLocation;
   JButton b1, b2;
-  JTextField  toDate;
-  JTextField  fromDate;
   JSlider toSlider;
   JSlider fromSlider;
-  JLabel l1,l2,l3,l4,l5,l6,l7;
+  JLabel l1,l2,l7;
                 
 static final int MIN = 1356998400;
 static final int MAX = 1553385600;
@@ -20,16 +18,20 @@ static final int MAX = 1553385600;
   ChangeListener cl1 = new ChangeListener()
   {
       public void stateChanged(ChangeEvent e) {
-        startDate = (long)fromSlider.getValue(); 
-        fromDate.setText(getDateString(startDate));
+        startDate = (long)fromSlider.getValue();         
+        if(startDate>endDate)
+          startDate = endDate;
+        l1.setText("From: " + getDateString(startDate));
     }
   };
   
   ChangeListener cl2 = new ChangeListener()
   {
       public void stateChanged(ChangeEvent e) {
-          endDate = (long)toSlider.getValue(); 
-          toDate.setText(getDateString(endDate));
+          endDate = (long)toSlider.getValue();  
+          if(startDate>endDate)
+             endDate = startDate;
+          l2.setText("To: " + getDateString(endDate));
     }
   };
   
@@ -44,40 +46,26 @@ static final int MAX = 1553385600;
   void createPage()
   {   
       l7 = new JLabel("Select Location:");
-      spLocation = new JSpinner();
+      spLocation = new JSpinner(new SpinnerListModel(locNames));
       spLocation.addChangeListener(cl3); 
       
-      l1 = new JLabel("From Date");
-      l2 = new JLabel("To Date");
-      l3 = new JLabel(getDateString(MIN));
-      l4 = new JLabel(getDateString(MAX));
-      l5 = new JLabel(getDateString(MIN));
-      l6 = new JLabel(getDateString(MAX));
-      
-      toDate = new JTextField (getDateString(MAX));
-      fromDate = new JTextField (getDateString(MIN));
-      toDate.setEnabled(false);
-      fromDate.setEnabled(false);
+      l1 = new JLabel("From Date: " + getDateString(MIN));
+      l2 = new JLabel("To Date: " + getDateString(MAX));
+       
       b1 = new JButton("Process!");
       b2 = new JButton("BACK");
       
       fromSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MIN);      
       toSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
       
-      l3.setBounds(35,17,350,35);
-      l4.setBounds(350,17,350,35);
       fromSlider.setBounds(35,40,350,35);
       l1.setBounds(35,65,350,35);
-      fromDate.setBounds(35,90,350,35);
       
-      l5.setBounds(35,140,350,35);
-      l6.setBounds(350,140,350,35);
-      toSlider.setBounds(35,170,350,35);
-      l2.setBounds(35,195,350,35);
-      toDate.setBounds(35,225,350,35);
+      toSlider.setBounds(35,100,350,35);
+      l2.setBounds(35,125,350,35);
       
-      l7.setBounds(35,255,350,35);
-      spLocation.setBounds(35,285,350,90);
+      l7.setBounds(35,155,350,35);
+      spLocation.setBounds(35,185,350,35);
       
       b1.setBounds(35,480,350,100);
       b1.setActionCommand("b1");            
@@ -96,22 +84,41 @@ static final int MAX = 1553385600;
       JRadioButton r3 =new JRadioButton("Weekly");
       JRadioButton r4 =new JRadioButton("Monthly");
       JRadioButton r5 =new JRadioButton("Yearly");
-      r1.setBounds(35,255,50,40);    
-      r2.setBounds(85,255,50,40);  
-      r3.setBounds(135,255,50,40); 
-      r4.setBounds(185,255,50,40);  
-      r5.setBounds(235,255,50,40); 
+      r5.setSelected(true);
+      r1.setBounds(35,222,80,40);    
+      r2.setBounds(118,222,80,40);  
+      r3.setBounds(191,222,80,40); 
+      r4.setBounds(280,222,80,40);  
+      r5.setBounds(371,222,80,40); 
       
       ButtonGroup bg=new ButtonGroup();    
-      bg.add(r1);bg.add(r2);bg.add(r3);bg.add(r4);bg.add(r5);    
+      bg.add(r1);bg.add(r2);bg.add(r3);bg.add(r4);bg.add(r5);   
+      
+      
+      JRadioButton r6=new JRadioButton("Average Values for cycle");    
+      JRadioButton r7=new JRadioButton("Raw values"); 
+      r6.setSelected(true);
+      r6.setBounds(35,250,180,40);    
+      r7.setBounds(215,250,180,40);   
+      
+      ButtonGroup bg2=new ButtonGroup();    
+      bg2.add(r6);bg2.add(r7);
+      
+      JRadioButton r8=new JRadioButton("Show Markers");    
+      JRadioButton r9=new JRadioButton("Hide Markers"); 
+      r8.setSelected(true);
+      r9.setBounds(35,280,180,40);    
+      r8.setBounds(215,280,180,40);   
+      
+      ButtonGroup bg3=new ButtonGroup();    
+      bg3.add(r8);bg3.add(r9);
       
    
       f.getContentPane().removeAll();
       f.add(b2);f.add(l7);f.add(spLocation);
-      f.add(l1); f.add(l2); f.add(l3); f.add(l4);
-      f.add(l5); f.add(l6); f.add(b1); f.add(toDate);
-      f.add(r1);f.add(r2);f.add(r3);f.add(r4);f.add(r5);
-      f.add(fromDate); f.add(toSlider); f.add(fromSlider);
+      f.add(r6);f.add(r7);f.add(r8);f.add(r9);
+      f.add(l1); f.add(l2); f.add(b1);
+      f.add(r1);f.add(r2);f.add(r3);f.add(r4);f.add(r5); f.add(toSlider); f.add(fromSlider);
          
       f.repaint();
   }

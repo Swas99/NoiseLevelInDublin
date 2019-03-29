@@ -3,7 +3,7 @@ import javax.swing.*;
 HomeUI objHome;
 JFrame f= new JFrame("Noise Viz");  
 
-int wheelType = 2;
+int wheelType = 4;
 long startDate = 1356998400; 
 long endDate = 1553385600;
 
@@ -14,11 +14,8 @@ float avgNoiseLevels[] = {-1, 52.73164,50.096222,55.71103,61.510845,54.30555,51.
 
 void setup() {
   f.setLayout(null);  
-  
   f.setVisible(true);
-  
-  
-f.setSize((int)(displayWidth/2.7),displayHeight-80);
+  f.setSize((int)(displayWidth/2.69),displayHeight-69);
   
   
   surface.setResizable(true);
@@ -37,7 +34,7 @@ final int NOISE_WHEEL_SCREEN = 2;
 final int NOISE_TIMElINE_SCREEN = 3;
 final int NOISE_MOVIE_SCREEN = 4;
 
-int currentScreen = 1;
+int currentScreen = 0;
 
 boolean needToDraw = true;
 void draw() { 

@@ -45,8 +45,12 @@ class HomeUI implements ActionListener
       objNoiseWheel.createPage();
       break;
       case "b3":
+      NoiseTimeline objNoiseTimeline = new NoiseTimeline();
+      objNoiseTimeline.createPage();
       break;
       case "b4":
+      NoiseMovie objNoiseMovie = new NoiseMovie();
+      objNoiseMovie.createPage();
       break;
     }
   } 

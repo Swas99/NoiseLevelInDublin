@@ -9,11 +9,9 @@ import java.awt.event.ActionListener;
 class AverageNoiseLevels implements ActionListener
 {
   JButton b1, b2;
-  JTextField  toDate;
-  JTextField  fromDate;
   JSlider toSlider;
   JSlider fromSlider;
-  JLabel l1,l2,l3,l4,l5,l6;
+  JLabel l1,l2;
                 
 static final int MIN = 1356998400;
 static final int MAX = 1553385600;
@@ -21,49 +19,39 @@ static final int MAX = 1553385600;
   ChangeListener cl1 = new ChangeListener()
   {
       public void stateChanged(ChangeEvent e) {
-        startDate = (long)fromSlider.getValue(); 
-        fromDate.setText(getDateString(startDate));
+        startDate = (long)fromSlider.getValue();         
+        if(startDate>endDate)
+          startDate = endDate;
+        l1.setText("From: " + getDateString(startDate));
     }
   };
   
   ChangeListener cl2 = new ChangeListener()
   {
       public void stateChanged(ChangeEvent e) {
-          endDate = (long)toSlider.getValue(); 
-          toDate.setText(getDateString(endDate));
+          endDate = (long)toSlider.getValue();  
+          if(startDate>endDate)
+             endDate = startDate;
+          l2.setText("To: " + getDateString(endDate));
     }
   };
   
   void createPage()
   {   
-      l1 = new JLabel("From Date");
-      l2 = new JLabel("To Date");
-      l3 = new JLabel(getDateString(MIN));
-      l4 = new JLabel(getDateString(MAX));
-      l5 = new JLabel(getDateString(MIN));
-      l6 = new JLabel(getDateString(MAX));
+      l1 = new JLabel("From Date: " + getDateString(MIN));
+      l2 = new JLabel("To Date: " + getDateString(MAX));
       
-      toDate = new JTextField (getDateString(MAX));
-      fromDate = new JTextField (getDateString(MIN));
-      toDate.setEnabled(false);
-      fromDate.setEnabled(false);
       b1 = new JButton("Process!");
       b2 = new JButton("BACK");
       
       fromSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MIN);      
       toSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
       
-      l3.setBounds(35,20,350,35);
-      l4.setBounds(350,20,350,35);
       fromSlider.setBounds(35,50,350,35);
       l1.setBounds(35,80,350,35);
-      fromDate.setBounds(35,110,350,35);
       
-      l5.setBounds(35,170,350,35);
-      l6.setBounds(350,170,350,35);
-      toSlider.setBounds(35,200,350,35);
-      l2.setBounds(35,225,350,35);
-      toDate.setBounds(35,255,350,35);
+      toSlider.setBounds(35,133,350,35);
+      l2.setBounds(35,165,350,35);
       
       b1.setBounds(35,480,350,100);
       b1.setActionCommand("b1");            
@@ -77,9 +65,8 @@ static final int MAX = 1553385600;
       
       f.getContentPane().removeAll();
       f.add(b2);
-      f.add(l1); f.add(l2); f.add(l3); f.add(l4);
-      f.add(l5); f.add(l6); f.add(b1); f.add(toDate);
-      f.add(fromDate); f.add(toSlider); f.add(fromSlider);
+      f.add(l1); f.add(l2);f.add(b1);
+      f.add(toSlider); f.add(fromSlider);
       f.repaint();
   }
   
