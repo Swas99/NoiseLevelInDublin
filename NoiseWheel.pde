@@ -202,7 +202,7 @@ void loadAndDrawDataForWheel()
   int cx = displayWidth/2;
   int cy = displayHeight/2;
   double radiusBuffer = 60;
-  double maxRadius = 700.0;
+  double maxRadius = 650.0;
   double thetaDec = 360.0/segments;
   double radiusDec = (maxRadius-radiusBuffer)/cycleCount;
   double radius = maxRadius;
@@ -210,6 +210,7 @@ void loadAndDrawDataForWheel()
   double start   = end - thetaDec;
   int cycles = 0;
   int segmentCounter = 0;
+  strokeWeight(1);
 
 
   println("->Wheel Type  : " + wheelType);
@@ -223,10 +224,10 @@ void loadAndDrawDataForWheel()
   for (int i = table_1.getRowCount()-1; i>=0; i--)
   { 
       TableRow row = table_1.getRow(i);
-      
-      if(row.getLong(0)>endDate)
+      long currentTime = row.getLong(0);
+      if(currentTime>endDate)
         continue;
-      if(row.getLong(0)<startDate)
+      if(currentTime<startDate)
         break;
       
      //Handle 28 OR 29 OR 31 day month
@@ -235,27 +236,33 @@ void loadAndDrawDataForWheel()
        switch(wheelType)
        {
          case 3: //Monthly
-         int currentDate = getDayOfMonth(row.getLong(0));
-         int currentMonth = getMonthFromTime(row.getLong(0));
-         if(currentDate == 31)
-           i -= ONE_DAY/288;
-         else if(currentMonth == 2)
          {
-           if(isALeapYear(row.getLong(0)))
+           int currentDate = getDayOfMonth(currentTime);
+           if(currentDate == 31)
+             i -= ONE_DAY/288;
+           else if(getMonthFromTime(currentTime) == 2)
            {
-             if(currentDate == 29)
-               segmentCounter++;
-           }
-           else
-           {
-             if(currentDate == 28)
-               segmentCounter+=2;
-           }
+             if(isALeapYear(currentTime))
+             {
+               if(currentDate == 29)
+                 segmentCounter++;
+             }
+             else
+             {
+               if(currentDate == 28)
+                 segmentCounter+=2;
+             }
+           } 
          }
          break;
          case 4: //Yearly
-         if(isALeapYear(row.getLong(0)) && segmentCounter == segments)
-           i -= ONE_DAY/288;
+         {
+           if(isALeapYear(currentTime))
+           {
+             if(getDayOfMonth(currentTime) == 29 && getMonthFromTime(currentTime) == 2)
+               i -= ONE_DAY/288;
+           }
+         }
          break;
        }
      if(i<0)
@@ -317,34 +324,59 @@ void loadAndDrawDataForWheel()
 void drawMarkersOnTheCircumference(double r, long end, int wheelType, int segments)
 {
   
-    String[] unit = { "Minute_", "Hour_", "Day_", "Day_", "Day_" };
+    String[] unit =     { "MINUTE_", "HOUR_", "DAY_", "DAY_", "DAY_" };
+    int [] maxValue =   { 60, 24, 7, 30, 365 };
     double[] ONE_UNIT = { 60.0, 24.0, 7.0, 30.0, 365.0};
     double thetaForOneSegement = 360/ONE_UNIT[wheelType];
     
-    double thetaDec = 45;
+    int sectors = 8;
+    if(wheelType == 2)
+      sectors = 7;
+      
+    double thetaDec = 360.0/sectors;  
+    r += 4;
      
-    noFill();
-    stroke(color(99,99,255));
+    strokeWeight(3);
+    stroke(color(#4169e1));
     double theta = 360;
     int cx = displayWidth/2;
     int cy = displayHeight/2;
     
+    int i=0;
+    double _r = r/2;
+    double x1,y1,x2,y2;
+    int hTextAlign[] = { LEFT, LEFT, CENTER, RIGHT, RIGHT, RIGHT, CENTER, LEFT};
+    int vTextAlign[] = {CENTER, CENTER, BOTTOM, CENTER, CENTER,CENTER, TOP, CENTER};
     while(theta>0)
     {
+        if(wheelType == 2 && i==7)
+          break;
+          
         println("[ " + (theta-thetaForOneSegement) + ", " + (theta) + " ]");
+        
+        x1 = cx + _r * cos(radians(theta));
+        y1 = cy + _r * sin(radians(theta));
+        x2 = cx + (_r+18) * cos(radians(theta));
+        y2 = cy + (_r+18) * sin(radians(theta));
+        line((float)x1, (float)y1, (float)x2, (float)y2);
+        
+        fill(color(0));
+        textAlign(hTextAlign[i], vTextAlign[i]);
+        textSize(18);
+        float currentValue = maxValue[wheelType] - (maxValue[wheelType]/(float)sectors)*i++;
+        text(unit[wheelType] + "" + currentValue, (float)x2, (float)y2);
+        
+        noFill();
         arc(cx, cy, (float)r, (float)r, radians(theta-thetaForOneSegement), radians(theta));
         theta -= thetaDec;
     }
     
     //long timeInc[] = new long[5];
       //end -= timeInc[wheelType];
-    //double x1,y1,x2,y2;
     //long ONE_HOUR = 60 * 60;
     //long wheelCircumference[] = { ONE_HOUR, ONE_HOUR*24,ONE_HOUR*24*7, ONE_HOUR*24*30,ONE_HOUR*24*365};
     //for(int i = 0; i<5; i++)
     //  timeInc[i] = wheelCircumference[i]/4;
-    //int hTextAlign[] = { LEFT, CENTER, RIGHT, CENTER, LEFT};
-    //int vTextAlign[] = {TOP, TOP, CENTER, BOTTOM, BOTTOM};
         //x1 = cx + r * cos(radians(theta));
         //y1 = cy + r * sin(radians(theta));
         //textAlign(hTextAlign[i], vTextAlign[i]);
