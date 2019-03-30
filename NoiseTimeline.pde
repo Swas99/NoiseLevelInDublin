@@ -51,6 +51,8 @@ static final int MAX = 1553385600;
       
       fromSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MIN);      
       toSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
+      toSlider.addChangeListener(cl2);
+      fromSlider.addChangeListener(cl1);
       
       fromSlider.setBounds(35,26,350,35);
       l1.setBounds(35,53,350,35);
@@ -94,10 +96,6 @@ static final int MAX = 1553385600;
       b2.setBounds(35,450,350,40);
       b2.setActionCommand("b2");            
       b2.addActionListener(this);
-                      
-      toSlider.addChangeListener(cl2);
-      fromSlider.addChangeListener(cl1);
-      
       
       
       JLabel l8 = new JLabel("Group By:");

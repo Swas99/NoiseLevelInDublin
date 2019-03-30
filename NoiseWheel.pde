@@ -3,6 +3,10 @@ import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+int wheelType = 4;
+boolean hideMarkers = false;
+int selectedLocationIndex = 1;
+boolean useAverageValues = false;
 
 class NoiseWheel implements ActionListener
 {
@@ -38,8 +42,14 @@ static final int MAX = 1553385600;
   ChangeListener cl3 = new ChangeListener()
   {
       public void stateChanged(ChangeEvent e) {
-          //endDate = (long)toSlider.getValue(); 
-          //toDate.setText(getDateString(endDate));
+          int index=0;
+          for(Object o :locNames) {
+              if(o.equals(spLocation.getValue()))
+                  selectedLocationIndex = index;
+              index++;
+          }      
+          if(selectedLocationIndex<1 || selectedLocationIndex>12)
+             selectedLocationIndex = 1;
     }
   };
   
@@ -90,25 +100,35 @@ static final int MAX = 1553385600;
       r3.setBounds(191,222,80,40); 
       r4.setBounds(280,222,80,40);  
       r5.setBounds(371,222,80,40); 
+      r1.setActionCommand("r1");            
+      r1.addActionListener(this); 
+      r2.setActionCommand("r2");            
+      r2.addActionListener(this); 
+      r3.setActionCommand("r3");            
+      r3.addActionListener(this); 
+      r4.setActionCommand("r4");            
+      r4.addActionListener(this); 
+      r5.setActionCommand("r5");            
+      r5.addActionListener(this);
       
       ButtonGroup bg=new ButtonGroup();    
       bg.add(r1);bg.add(r2);bg.add(r3);bg.add(r4);bg.add(r5);   
       
       
-      JRadioButton r6=new JRadioButton("Average Values for cycle");    
-      JRadioButton r7=new JRadioButton("Raw values"); 
+      JRadioButton r6=new JRadioButton("Use Absolute Noise Values in sectors");    
+      JRadioButton r7=new JRadioButton("Use Average Noise Values to represent sectors"); 
       r6.setSelected(true);
-      r6.setBounds(35,250,180,40);    
-      r7.setBounds(215,250,180,40);   
+      r6.setBounds(35,260,380,40);    
+      r7.setBounds(35,290,380,40);   
       
       ButtonGroup bg2=new ButtonGroup();    
       bg2.add(r6);bg2.add(r7);
       
-      JRadioButton r8=new JRadioButton("Show Markers");    
-      JRadioButton r9=new JRadioButton("Hide Markers"); 
-      r8.setSelected(true);
-      r9.setBounds(35,280,180,40);    
-      r8.setBounds(215,280,180,40);   
+      JRadioButton r8=new JRadioButton("Hide Markers");    
+      JRadioButton r9=new JRadioButton("Show Markers"); 
+      r9.setSelected(true);
+      r9.setBounds(35,330,180,40);    
+      r8.setBounds(215,330,180,40);   
       
       ButtonGroup bg3=new ButtonGroup();    
       bg3.add(r8);bg3.add(r9);
@@ -130,7 +150,7 @@ static final int MAX = 1553385600;
     switch(e.getActionCommand())
     {
       case "b1":
-       currentScreen = AVERAGE_NOISE_SCREEN;
+       currentScreen = NOISE_WHEEL_SCREEN;
        needToDraw = true;
        break;
       case "b2":
@@ -151,73 +171,194 @@ static final int MAX = 1553385600;
       case "r5":
        wheelType = 4;
        break;
+      case "r6":
+       useAverageValues = false;
+       break;
+      case "r7":
+       useAverageValues = true;
+       break;
+      case "r8":
+       hideMarkers = true;
+       break;
+      case "r9":
+       hideMarkers = false;
+       break;
+       
     }
   } 
-  
-  
-
 }
-
  
 void loadAndDrawDataForWheel()
-{ 
-  Table table_1;
+{  
+  Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
   
-  table_1 = loadTable("data_8", "csv");
-  //table_1.sort(1);
-  println(table_1.getRowCount() + " total rows in table");
+  int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
+  int segments = SEGMENTS[wheelType];
   
-  float[] SEGMENTS = {12.0, 288.0, 288.0 * 7, 288.0 * 30, 288.0 * 365};
-  float segements = SEGMENTS[wheelType];
-  float[] PERIODICITY = {365.0 * 24.0, 365.0, 52.0, 12.0, 1};
-  float cyclePeriodicity = PERIODICITY[wheelType];
-  float cycleCount = cyclePeriodicity * 6.25; 
+  double[] PERIODICITY = {365.0 * 24.0, 365.0, 365.0/7.0, 12.0, 1}; //PERIODICITY[i] Circles = 1 Year; (Each Circle is drawn with a smaller radius(reduced by a constant after each circle)
+  double cyclePeriodicity = PERIODICITY[wheelType];//To draw cricles that represent 1 year
+  double cycleCount = getCycleCount(startDate,endDate, wheelType); 
   
   int cx = displayWidth/2;
   int cy = displayHeight/2;
-  float radius = 700.0;
-  
-  float thetaInc = 360/segements;
-  float radiusDec = (radius)/cycleCount;
-  println(radiusDec);
-  float start = 0;
-  float end   = thetaInc;
+  double radiusBuffer = 60;
+  double maxRadius = 700.0;
+  double thetaDec = 360.0/segments;
+  double radiusDec = (maxRadius-radiusBuffer)/cycleCount;
+  double radius = maxRadius;
+  double end = 360;
+  double start   = end - thetaDec;
   int cycles = 0;
-  
-  ArrayList<Float> rList = new ArrayList();
-  
-  for (int i = 0; i<table_1.getRowCount(); i++)
-  //for (int i = 0; i<7*288; i++)
-  {
-      TableRow row = table_1.getRow(i);
+  int segmentCounter = 0;
 
-      float NOISE = row.getFloat(1);
- 
+
+  println("->Wheel Type  : " + wheelType);
+  println("->Start Radius: " + radius);
+  println("->Segments    : " + segments);
+  println("->Theta Dec   : " + thetaDec);
+  println("->Cycle Count : " + cycleCount);
+  println("->Periodicity : " + cyclePeriodicity);
+  
+  ArrayList<Double> rList = new ArrayList();
+  for (int i = table_1.getRowCount()-1; i>=0; i--)
+  { 
+      TableRow row = table_1.getRow(i);
+      
+      if(row.getLong(0)>endDate)
+        continue;
+      if(row.getLong(0)<startDate)
+        break;
+      
+     //Handle 28 OR 29 OR 31 day month
+     //Handle Leap Year
+     //Not 100% correct but will work for now
+       switch(wheelType)
+       {
+         case 3: //Monthly
+         int currentDate = getDayOfMonth(row.getLong(0));
+         int currentMonth = getMonthFromTime(row.getLong(0));
+         if(currentDate == 31)
+           i -= ONE_DAY/288;
+         else if(currentMonth == 2)
+         {
+           if(isALeapYear(row.getLong(0)))
+           {
+             if(currentDate == 29)
+               segmentCounter++;
+           }
+           else
+           {
+             if(currentDate == 28)
+               segmentCounter+=2;
+           }
+         }
+         break;
+         case 4: //Yearly
+         if(isALeapYear(row.getLong(0)) && segmentCounter == segments)
+           i -= ONE_DAY/288;
+         break;
+       }
+     if(i<0)
+       break;
+     
+      double NOISE = row.getDouble(1);
       fillColor = getColorForNoise(NOISE);
       
+      segmentCounter++;
       fill(fillColor);
       stroke(fillColor);
-      arc(cx, cy, radius, radius, radians(start), radians(end));
-      start = end;
-      end += thetaInc;
+      arc(cx, cy, (float)radius, (float)radius, radians(start), radians(end));
+      end = start;
+      start -= thetaDec;
       
-     if(start >= 360)
+     if(segmentCounter == segments)
      {
          if(cycles%cyclePeriodicity == 0)
+         {
+           println("Loss(degrees) = " + end);
            rList.add(radius);
+         }
 
-         start = 0;
-         end = thetaInc;
+         end = 360;
+         start = end - thetaDec;
          radius -= radiusDec;
+         segmentCounter = 0;
          cycles++;
      }
+     
+     
   }
-   
-  for(float r : rList)
+  
+  println("finalS          : " + start);
+  println("finalE          : " + end);
+  println("finalRadius     : " + radius);
+  println("final segCount  : " + segmentCounter);
+  
+  if(segmentCounter!=0)
   {
-      println(r);
+    noFill();
+    stroke(0);
+    arc(cx, cy, (float)radius, (float)radius, radians(start), radians(360));
+  }
+  
+  for(double r : rList)
+  {
       stroke(color(0,0,0));
       noFill();
-      circle(cx,cy,r);
+      circle(cx,cy,(float)r);
   }
+  
+  
+  drawMarkersOnTheCircumference(maxRadius, endDate, wheelType,segments);
+}
+
+
+
+void drawMarkersOnTheCircumference(double r, long end, int wheelType, int segments)
+{
+  
+    String[] unit = { "Minute_", "Hour_", "Day_", "Day_", "Day_" };
+    double[] ONE_UNIT = { 60.0, 24.0, 7.0, 30.0, 365.0};
+    double thetaForOneSegement = 360/ONE_UNIT[wheelType];
+    
+    double thetaDec = 45;
+     
+    noFill();
+    stroke(color(99,99,255));
+    double theta = 360;
+    int cx = displayWidth/2;
+    int cy = displayHeight/2;
+    
+    while(theta>0)
+    {
+        println("[ " + (theta-thetaForOneSegement) + ", " + (theta) + " ]");
+        arc(cx, cy, (float)r, (float)r, radians(theta-thetaForOneSegement), radians(theta));
+        theta -= thetaDec;
+    }
+    
+    //long timeInc[] = new long[5];
+      //end -= timeInc[wheelType];
+    //double x1,y1,x2,y2;
+    //long ONE_HOUR = 60 * 60;
+    //long wheelCircumference[] = { ONE_HOUR, ONE_HOUR*24,ONE_HOUR*24*7, ONE_HOUR*24*30,ONE_HOUR*24*365};
+    //for(int i = 0; i<5; i++)
+    //  timeInc[i] = wheelCircumference[i]/4;
+    //int hTextAlign[] = { LEFT, CENTER, RIGHT, CENTER, LEFT};
+    //int vTextAlign[] = {TOP, TOP, CENTER, BOTTOM, BOTTOM};
+        //x1 = cx + r * cos(radians(theta));
+        //y1 = cy + r * sin(radians(theta));
+        //textAlign(hTextAlign[i], vTextAlign[i]);
+        //textSize(17);
+        //text("   " + getDateString(end) + "   ", x1, y1);
+    //int buffer = 10;
+    //x1 = cx + r * cos(radians(0)) + buffer;
+    //y1 = cy + r * sin(radians(0));
+    //x2 = cx + r * cos(radians(180)) - buffer;
+    //y2 = cy + r * sin(radians(180));
+    //line(x1, y1, x2, y2);
+    //x1 = cx + r * cos(radians(90));
+    //y1 = cy + r * sin(radians(90)) + buffer;
+    //x2 = cx + r * cos(radians(270));
+    //y2 = cy + r * sin(radians(270)) - buffer;
+    //line(x1, y1, x2, y2);
 }

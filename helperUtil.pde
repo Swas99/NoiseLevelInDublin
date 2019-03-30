@@ -1,14 +1,21 @@
 import java.util.*;
 
-  public static String getDateString(long time)
-  {
-        Date date=new Date(time*1000);
-        java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        df2.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return df2.format(date);
-  }
+long ONE_DAY = 24 * 60 * 60;
 
-color getColorForNoise(float noise)
+public static String getDateString(long time)
+{
+      Date date=new Date(time*1000);
+      java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+      df2.setTimeZone(TimeZone.getTimeZone("GMT"));
+      return df2.format(date);
+}
+
+float radians(double deg)
+{
+  return (float)(deg * 22.0 / 180.0 / 7.0);
+}
+
+color getColorForNoise(double noise)
 {
   if(noise == -1)
     return color(#FF6DE6);
@@ -53,13 +60,13 @@ color getColorForNoise(float noise)
   else
     toColor = 11;
   
-  float mixer = getMixerValue(noise);
+  float mixer = (float)getMixerValue(noise);
   
   //println( lerpColor(rangeColors[toColor-1], rangeColors[toColor], mixer));
   return lerpColor(rangeColors[toColor-1], rangeColors[toColor], mixer);
 }
 
-float getMixerValue(float val)
+double getMixerValue(double val)
 {
     if(val<35)
     {
@@ -77,7 +84,56 @@ float getMixerValue(float val)
     return (val-intVal)/5.0;
 }
 
-  
+double getCycleCount(long start, long end, int wheelType)
+{
+  double[] SEGMENTS = {12.0, 288.0, 288.0 * 7, 288.0 * 30, 288.0 * 365};
+  long numOfDataPoints = getNumberOfPointsInSelectionPeriod(start, end);
+  return numOfDataPoints/SEGMENTS[wheelType];
+}
+boolean isALeapYear(long time)
+{
+    Date date=new Date(time*1000);
+    java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("yyyy");
+    df2.setTimeZone(TimeZone.getTimeZone("GMT"));
+    String year = df2.format(date);
+    int intYear = Integer.parseInt(year);
+    return (intYear % 100 == 0) ? (intYear % 400 == 0) : (intYear % 4 == 0);
+}
+
+int getDaysInMonth(long time)
+{
+    Date date=new Date(time*1000);
+    java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("MM");
+    df2.setTimeZone(TimeZone.getTimeZone("GMT"));
+    String month = df2.format(date);
+    int intMonth = Integer.parseInt(month);
+    int daysInMonth [] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    return daysInMonth[intMonth];
+}
+
+int getMonthFromTime(long time)
+{
+    Date date=new Date(time*1000);
+    java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("MM");
+    df2.setTimeZone(TimeZone.getTimeZone("GMT"));
+    String month = df2.format(date);
+    return Integer.parseInt(month);
+}
+
+int getDayOfMonth(long time)
+{
+    Date date=new Date(time*1000);
+    java.text.SimpleDateFormat df2 = new java.text.SimpleDateFormat("dd");
+    df2.setTimeZone(TimeZone.getTimeZone("GMT"));
+    String dayOfMonth = df2.format(date);
+    return Integer.parseInt(dayOfMonth);
+}
+
+long getNumberOfPointsInSelectionPeriod(long start, long end)
+{
+  long FIVE_MIN = 5 * 60;
+  return (end-start)/FIVE_MIN;
+}
   
 float computeAverageNoise(int loc, long start, long end)
 {
