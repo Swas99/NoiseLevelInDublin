@@ -280,7 +280,7 @@ void loadAndDrawDataForWheel()
       
      if(segmentCounter == segments)
      {
-         if(cycles%cyclePeriodicity == 0)
+         if(cycles%((int)cyclePeriodicity) == 0)
          {
            println("Loss(degrees) = " + end);
            rList.add(radius);
@@ -316,10 +316,41 @@ void loadAndDrawDataForWheel()
   }
   
   
+  drawTimeAxis((float)maxRadius, endDate, wheelType,segments);
   drawMarkersOnTheCircumference(maxRadius, endDate, wheelType,segments);
 }
 
+void drawTimeAxis(float r, long end, int wheelType, int segments)
+{
+    r/=2;
+    fill(color(0));
+    float cx = displayWidth/2;
+    float cy = displayHeight/2;
+    drawAxis(cx,cy,cx+r+140.0,cy,true,17,8,"time");
+    drawAxis(cx,cy,cx,cy+r-120.0,false,17,8,"time");
+}
 
+void drawAxis(float cx, float cy, float endX, float endY,boolean xAxis, float ar_len, float ar_width, String text)
+{
+    line( cx,cy, endX, endY);
+    if(!xAxis)
+    {
+      ar_len = ar_len + ar_width;
+      ar_width = ar_len - ar_width;
+      ar_len = ar_len - ar_width;
+      line( endX-ar_len, endY - ar_width, endX,endY); //Arrow_top_part
+      line( endX+ar_len, endY - ar_width, endX,endY); //Arrow_bottom_part
+    }
+    else
+    {
+      line( endX-ar_len, endY - ar_width, endX,endY); //Arrow_top_part
+      line( endX-ar_len, endY + ar_width, endX,endY); //Arrow_bottom_part
+    }
+    
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text( text, endX, endY);
+}
 
 void drawMarkersOnTheCircumference(double r, long end, int wheelType, int segments)
 {
@@ -370,27 +401,4 @@ void drawMarkersOnTheCircumference(double r, long end, int wheelType, int segmen
         arc(cx, cy, (float)r, (float)r, radians(theta-thetaForOneSegement), radians(theta));
         theta -= thetaDec;
     }
-    
-    //long timeInc[] = new long[5];
-      //end -= timeInc[wheelType];
-    //long ONE_HOUR = 60 * 60;
-    //long wheelCircumference[] = { ONE_HOUR, ONE_HOUR*24,ONE_HOUR*24*7, ONE_HOUR*24*30,ONE_HOUR*24*365};
-    //for(int i = 0; i<5; i++)
-    //  timeInc[i] = wheelCircumference[i]/4;
-        //x1 = cx + r * cos(radians(theta));
-        //y1 = cy + r * sin(radians(theta));
-        //textAlign(hTextAlign[i], vTextAlign[i]);
-        //textSize(17);
-        //text("   " + getDateString(end) + "   ", x1, y1);
-    //int buffer = 10;
-    //x1 = cx + r * cos(radians(0)) + buffer;
-    //y1 = cy + r * sin(radians(0));
-    //x2 = cx + r * cos(radians(180)) - buffer;
-    //y2 = cy + r * sin(radians(180));
-    //line(x1, y1, x2, y2);
-    //x1 = cx + r * cos(radians(90));
-    //y1 = cy + r * sin(radians(90)) + buffer;
-    //x2 = cx + r * cos(radians(270));
-    //y2 = cy + r * sin(radians(270)) - buffer;
-    //line(x1, y1, x2, y2);
 }
