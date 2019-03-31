@@ -22,7 +22,7 @@ color getColorForNoise(double noise)
     
   color rangeColors[] = 
   {
-    color(#FFFFFF), //LOWER BOUND
+    color(#135629), //LOWER BOUND
     color(#197035), //0-34.99
     color(#238543), //35-39.99
     color(#78C679), //40-44.99

@@ -51,6 +51,7 @@ void draw() {
     drawLocationWithAverageValues();
     break;
     case NOISE_WHEEL_SCREEN:
+    drawLegend();
     loadAndDrawDataForWheel();
     break;
     case NOISE_TIMElINE_SCREEN:
@@ -61,4 +62,17 @@ void draw() {
   needToDraw = false;
 }
  
- 
+
+void drawLegend()
+{
+    float y = 10;
+    for(float noise = 20;noise<110; noise+=0.1)
+    {
+      fillColor = getColorForNoise(noise);
+      fill(fillColor);
+      stroke(fillColor);
+      
+      rect(80,y,20,.3);
+      y+=.3;
+    }
+}

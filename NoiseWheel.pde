@@ -119,7 +119,12 @@ static final int MAX = 1553385600;
       JRadioButton r7=new JRadioButton("Use Average Noise Values to represent sectors"); 
       r6.setSelected(true);
       r6.setBounds(35,260,380,40);    
-      r7.setBounds(35,290,380,40);   
+      r7.setBounds(35,290,380,40);  
+      
+      r6.setActionCommand("r6");            
+      r6.addActionListener(this);
+      r7.setActionCommand("r7");            
+      r7.addActionListener(this); 
       
       ButtonGroup bg2=new ButtonGroup();    
       bg2.add(r6);bg2.add(r7);
@@ -129,6 +134,11 @@ static final int MAX = 1553385600;
       r9.setSelected(true);
       r9.setBounds(35,330,180,40);    
       r8.setBounds(215,330,180,40);   
+      
+      r8.setActionCommand("r8");            
+      r8.addActionListener(this);
+      r9.setActionCommand("r9");            
+      r9.addActionListener(this);
       
       ButtonGroup bg3=new ButtonGroup();    
       bg3.add(r8);bg3.add(r9);
@@ -190,8 +200,116 @@ static final int MAX = 1553385600;
  
 void loadAndDrawDataForWheel()
 {  
+    if(useAverageValues)
+      drawWheelUsingAverageValues();
+    else
+      drawWheelUsingAbsoluteValues();
+}
+
+void drawWheelUsingAverageValues()
+{
   Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
+ 
+  int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
+  int segments = SEGMENTS[wheelType];
   
+  int cx = displayWidth/2;
+  int cy = displayHeight/2;
+  double maxRadius = 650.0;
+  double thetaDec = 360.0/segments;
+  double radius = maxRadius;
+  double end = 360;
+  double start   = end - thetaDec;
+  int segmentCounter = 0;
+  double noisePerSegment[] = new double[segments];
+  double dataPointsPerSegment[] = new double[segments];
+  strokeWeight(1);
+
+
+  println("->Wheel Type  : " + wheelType);
+  println("->Segments    : " + segments);
+
+  long currentTime = 0;
+  for (int i = table_1.getRowCount()-1; i>=0; i--)
+  { 
+      TableRow row = table_1.getRow(i);
+      currentTime = row.getLong(0);
+      if(currentTime>endDate)
+        continue;
+      if(currentTime<startDate)
+        break;
+      
+     //Handle 28 OR 29 OR 31 day month
+     //Handle Leap Year
+     //Not 100% correct but will work for now
+       switch(wheelType)
+       {
+         case 3: //Monthly
+         {
+           int currentDate = getDayOfMonth(currentTime);
+           if(currentDate == 31)
+             i -= ONE_DAY/288;
+           else if(getMonthFromTime(currentTime) == 2)
+           {
+             if(isALeapYear(currentTime))
+             {
+               if(currentDate == 29)
+                 segmentCounter++;
+             }
+             else
+             {
+               if(currentDate == 28)
+                 segmentCounter+=2;
+             }
+           } 
+         }
+         break;
+         case 4: //Yearly
+         {
+           if(isALeapYear(currentTime))
+           {
+             if(getDayOfMonth(currentTime) == 29 && getMonthFromTime(currentTime) == 2)
+               i -= ONE_DAY/288;
+           }
+         }
+         break;
+       }
+     if(i<0)
+       break;
+     
+      double NOISE = row.getDouble(1);
+      noisePerSegment[segmentCounter] += NOISE;
+      dataPointsPerSegment[segmentCounter]++;
+      segmentCounter++;
+     if(segmentCounter == segments)
+       segmentCounter = 0;
+  }
+  
+  for (int i = 0; i<segments; i++)
+  {    
+      fillColor = getColorForNoise(noisePerSegment[i]/dataPointsPerSegment[i]);
+      fill(fillColor);
+      stroke(fillColor);
+      arc(cx, cy, (float)radius, (float)radius, radians(start), radians(end));
+      end = start;
+      start -= thetaDec;
+  }
+  
+  println("finalS          : " + start);
+  println("finalE          : " + end);
+  println("finalRadius     : " + radius);
+  println("final segCount  : " + segmentCounter);
+  
+  if(hideMarkers)
+    return;
+  
+  drawMarkersOnTheCircumference(maxRadius, endDate, wheelType,segments);
+}
+
+void drawWheelUsingAbsoluteValues()
+{
+  
+  Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
   long[] oneCycleTime = {60*60, 24*60*60, 24*60*60*7, 24*60*60 * 30l, 24*60*60 * 365};
   int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
   int segments = SEGMENTS[wheelType];
@@ -306,6 +424,9 @@ void loadAndDrawDataForWheel()
   println("finalRadius     : " + radius);
   println("final segCount  : " + segmentCounter);
   
+  if(hideMarkers)
+    return;
+    
   for(double r : rList)
   {
       stroke(color(0,0,0));
@@ -324,8 +445,8 @@ void loadAndDrawDataForWheel()
   drawTimeAxis((float)maxRadius);
   drawTimeDataPoints((float)maxRadius, rList, timeList, oneCycleTime[wheelType]);
   drawMarkersOnTheCircumference(maxRadius, endDate, wheelType,segments);
-  
 }
+
 void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeList, long oneCycleTime)
 {
     r/=2;
@@ -333,23 +454,38 @@ void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeLis
     textAlign(LEFT, CENTER);
     float cx = displayWidth/2;
     float cy = displayHeight/2;
-    float x1,y1,x2,y2,y2_2, yPrev;
+    float x1,y1,x2,y2,y2_2, yPrev, yPrev2;
     x2 = cx + r * cos(0) + 100;
     y1 = (float)(cy + r * sin(0));
     yPrev = y1;
+    yPrev2 = y1;
     for(int i = 0; i<rList.size(); i++)
     {
         x1 = (float)(cx + rList.get(i)/2 * cos(0));
         y2 = yPrev - 44;   
-        y2_2 = yPrev + 44;
+        y2_2 = yPrev2 + 44;
         yPrev = y2;
+        yPrev2 = y2_2;
+        
         line((float)x1, (float)y1, (float)x2, (float)y2);
         line((float)x2, (float)y2, (float)x2 + 10, (float)y2);
         text( getDateString(timeList.get(i)), x2+10, y2);
         
-        line((float)x1, (float)y1, (float)x2, (float)y2);
+        line((float)x1, (float)y1, (float)x2, (float)y2_2);
         line((float)x2, (float)y2_2, (float)x2 + 10, (float)y2_2);
         text( getDateString(timeList.get(i) - oneCycleTime), x2+10, y2_2);
+    }
+    
+    strokeWeight(2);
+    for(int i = 0; i<rList.size()-1; i++)
+    {
+        x1 = cx;
+        y1 = (float)(cy - rList.get(i)/2);
+        line( x1-14, y1 - 4, x1,y1); //Arrow_top_part
+        line( x1-14, y1 + 4, x1,y1); //Arrow_bottom_part
+        y1 = (float)(cy + rList.get(i)/2);
+        line( x1+14, y1 - 4, x1,y1); //Arrow_top_part
+        line( x1+14, y1 + 4, x1,y1); //Arrow_bottom_part
     }
     
 }
