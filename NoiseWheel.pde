@@ -192,6 +192,7 @@ void loadAndDrawDataForWheel()
 {  
   Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
   
+  long[] oneCycleTime = {60*60, 24*60*60, 24*60*60*7, 24*60*60 * 30l, 24*60*60 * 365};
   int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
   int segments = SEGMENTS[wheelType];
   
@@ -219,12 +220,14 @@ void loadAndDrawDataForWheel()
   println("->Theta Dec   : " + thetaDec);
   println("->Cycle Count : " + cycleCount);
   println("->Periodicity : " + cyclePeriodicity);
-  
+
+  long currentTime = 0;
   ArrayList<Double> rList = new ArrayList();
+  ArrayList<Long> timeList = new ArrayList();
   for (int i = table_1.getRowCount()-1; i>=0; i--)
   { 
       TableRow row = table_1.getRow(i);
-      long currentTime = row.getLong(0);
+      currentTime = row.getLong(0);
       if(currentTime>endDate)
         continue;
       if(currentTime<startDate)
@@ -271,12 +274,13 @@ void loadAndDrawDataForWheel()
       double NOISE = row.getDouble(1);
       fillColor = getColorForNoise(NOISE);
       
-      segmentCounter++;
       fill(fillColor);
       stroke(fillColor);
       arc(cx, cy, (float)radius, (float)radius, radians(start), radians(end));
       end = start;
       start -= thetaDec;
+        
+      segmentCounter++;
       
      if(segmentCounter == segments)
      {
@@ -284,6 +288,7 @@ void loadAndDrawDataForWheel()
          {
            println("Loss(degrees) = " + end);
            rList.add(radius);
+           timeList.add(currentTime);
          }
 
          end = 360;
@@ -301,33 +306,64 @@ void loadAndDrawDataForWheel()
   println("finalRadius     : " + radius);
   println("final segCount  : " + segmentCounter);
   
-  if(segmentCounter!=0)
-  {
-    noFill();
-    stroke(0);
-    arc(cx, cy, (float)radius, (float)radius, radians(start), radians(360));
-  }
-  
   for(double r : rList)
   {
       stroke(color(0,0,0));
       noFill();
       circle(cx,cy,(float)r);
   }
+  if(segmentCounter!=0)
+  {
+      noFill();
+      stroke(0);
+      rList.add(radius);
+      timeList.add(currentTime);
+      arc(cx, cy, (float)radius, (float)radius, radians(start), radians(360));
+  }
   
-  
-  drawTimeAxis((float)maxRadius, endDate, wheelType,segments);
+  drawTimeAxis((float)maxRadius);
+  drawTimeDataPoints((float)maxRadius, rList, timeList, oneCycleTime[wheelType]);
   drawMarkersOnTheCircumference(maxRadius, endDate, wheelType,segments);
+  
 }
-
-void drawTimeAxis(float r, long end, int wheelType, int segments)
+void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeList, long oneCycleTime)
 {
     r/=2;
+    textSize(14);
+    textAlign(LEFT, CENTER);
+    float cx = displayWidth/2;
+    float cy = displayHeight/2;
+    float x1,y1,x2,y2,y2_2, yPrev;
+    x2 = cx + r * cos(0) + 100;
+    y1 = (float)(cy + r * sin(0));
+    yPrev = y1;
+    for(int i = 0; i<rList.size(); i++)
+    {
+        x1 = (float)(cx + rList.get(i)/2 * cos(0));
+        y2 = yPrev - 44;   
+        y2_2 = yPrev + 44;
+        yPrev = y2;
+        line((float)x1, (float)y1, (float)x2, (float)y2);
+        line((float)x2, (float)y2, (float)x2 + 10, (float)y2);
+        text( getDateString(timeList.get(i)), x2+10, y2);
+        
+        line((float)x1, (float)y1, (float)x2, (float)y2);
+        line((float)x2, (float)y2_2, (float)x2 + 10, (float)y2_2);
+        text( getDateString(timeList.get(i) - oneCycleTime), x2+10, y2_2);
+    }
+    
+}
+void drawTimeAxis(float r)
+{
+    r/=2;
+    float buffer = 140;
     fill(color(0));
     float cx = displayWidth/2;
     float cy = displayHeight/2;
-    drawAxis(cx,cy,cx+r+140.0,cy,true,17,8,"time");
-    drawAxis(cx,cy,cx,cy+r-120.0,false,17,8,"time");
+    drawAxis(cx,cy,cx+r+buffer,cy,true,17,8,"time");
+    drawAxis(cx,cy,cx,cy+r+buffer,false,17,8,"time");
+    drawAxis(cx,cy,cx-r-buffer,cy,true,-17,8,"time");
+    drawAxis(cx,cy,cx,cy-r-buffer,false,-17,8,"time");
 }
 
 void drawAxis(float cx, float cy, float endX, float endY,boolean xAxis, float ar_len, float ar_width, String text)
@@ -335,16 +371,21 @@ void drawAxis(float cx, float cy, float endX, float endY,boolean xAxis, float ar
     line( cx,cy, endX, endY);
     if(!xAxis)
     {
-      ar_len = ar_len + ar_width;
-      ar_width = ar_len - ar_width;
-      ar_len = ar_len - ar_width;
-      line( endX-ar_len, endY - ar_width, endX,endY); //Arrow_top_part
-      line( endX+ar_len, endY - ar_width, endX,endY); //Arrow_bottom_part
-    }
+      line( endX-ar_width, endY - ar_len, endX,endY); //Arrow_top_part
+      line( endX+ar_width, endY - ar_len, endX,endY); //Arrow_bottom_part
+      if(ar_len>0)
+        endY += 9;
+      else
+        endY -=9;  
+  }
     else
     {
       line( endX-ar_len, endY - ar_width, endX,endY); //Arrow_top_part
       line( endX-ar_len, endY + ar_width, endX,endY); //Arrow_bottom_part
+      if(ar_len>0)
+        endX += 20;
+      else
+        endX -= 20;
     }
     
     textSize(14);
