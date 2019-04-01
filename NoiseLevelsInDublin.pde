@@ -9,8 +9,15 @@ int backgroundColor;
 
 long startDate = 1356998400; 
 long endDate = 1553385600;
+
+int wheelType = 4;
+int groupBy = -1;
+boolean hideMarkers = false;
+int selectedLocationIndex = 1;
+boolean useAverageValues = false;
 String locNames[] = {"Drumcondra Library_", "Drumcondra Library","Bull Island","Ballyfermot Civic Centre","Ballymun Library","Dublin City Council Rowing Club","Walkinstown Library","Woodstock Gardens","Navan Road","Raheny Library","Irishtown Stadium","Chancery Park","Blessington St. Basin","Dolphins Barn","Sean Moore Road","Mellows Park"};
 float avgNoiseLevels[] = {-1, 52.73164,50.096222,55.71103,61.510845,54.30555,51.46327,46.688187,54.004524,53.58606,50.208145,60.348946,50.85076};
+boolean selectedLocations[] = {true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
 
 void setup() {
   
@@ -49,21 +56,26 @@ void draw() {
     case AVERAGE_NOISE_SCREEN: 
     drawHeader();
     drawLocationWithAverageValues();
+    needToDraw = false;
     break;
     case NOISE_WHEEL_SCREEN:
-    drawLegend();
+    drawLegendForWheel();
     loadAndDrawDataForWheel();
+    needToDraw = false;
     break;
     case NOISE_TIMElINE_SCREEN:
+    drawLegendForWheel();
+    loadAndDrawDataForTimeline();
+    needToDraw = false;
     break;
     case NOISE_MOVIE_SCREEN:
+    playNoiseMovie();
     break;
   }
-  needToDraw = false;
 }
  
 
-void drawLegend()
+void drawLegendForWheel()
 {
     float y = 20;
     int i=0;
@@ -74,17 +86,20 @@ void drawLegend()
       fill(fillColor);
       stroke(fillColor);
       
-      rect(62,y,20, .3);
+      rect(44,y,20, .3);
       if(i%100 == 0)
       {
-        line(62, y, 90, y);
-        text((int)noise + " dB", 90, y);
+        line(44, y, 72, y);
+        text((int)noise + " dB", 72, y);
       }
       i++;
       y+=.3;
     }
     
-    rect(62,y+10,20, 8);
-    line(62, y+10, 90, y+10);
-    text("Data Not Available", 90, y+10);
+    fillColor = getColorForNoise(-1);
+    fill(fillColor);
+    stroke(fillColor);
+    rect(44,y+10,20, 8);
+    line(44, y+14, 72, y+14);
+    text("Data Not Available", 72, y+14);
 }

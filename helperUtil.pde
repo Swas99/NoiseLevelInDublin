@@ -1,5 +1,6 @@
 import java.util.*;
 
+long FIVE_MIN = 5 * 60;
 long ONE_DAY = 24 * 60 * 60;
 
 public static String getDateString(long time)
@@ -131,7 +132,6 @@ int getDayOfMonth(long time)
 
 long getNumberOfPointsInSelectionPeriod(long start, long end)
 {
-  long FIVE_MIN = 5 * 60;
   return (end-start)/FIVE_MIN;
 }
   
@@ -164,4 +164,35 @@ float computeAverageNoise(int loc, long start, long end)
   println("Average Noise = " + noise/count);
   println();
   return noise/count;
+}
+
+
+void drawAxis(float cx, float cy, float endX, float endY,boolean xAxis, float ar_len, float ar_width, String text)
+{
+    fill(color(0));
+    stroke(color(0));
+    
+    line( cx,cy, endX, endY);
+    if(!xAxis)
+    {
+      line( endX-ar_width, endY - ar_len, endX,endY); //Arrow_top_part
+      line( endX+ar_width, endY - ar_len, endX,endY); //Arrow_bottom_part
+      if(ar_len>0)
+        endY += 9;
+      else
+        endY -=9;  
+  }
+    else
+    {
+      line( endX-ar_len, endY - ar_width, endX,endY); //Arrow_top_part
+      line( endX-ar_len, endY + ar_width, endX,endY); //Arrow_bottom_part
+      if(ar_len>0)
+        endX += 20;
+      else
+        endX -= 20;
+    }
+    
+    
+    textSize(14);
+    text( text, endX, endY);
 }

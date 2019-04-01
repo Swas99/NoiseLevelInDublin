@@ -100,8 +100,6 @@ void drawHeader()
   
   textSize(20);
   text(line_2, displayWidth/2, 48);
-  
-  println(line_2);
 }
 
 void drawLocationWithAverageValues()

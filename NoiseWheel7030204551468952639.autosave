@@ -193,45 +193,28 @@ static final int MAX = 1553385600;
     }
   } 
 }
- 
+
+  int x_buffer = 80;
+  int cx = displayWidth/2 + x_buffer;
+  int cy = displayHeight/2;
+  
 void loadAndDrawDataForWheel()
 {  
     if(useAverageValues)
       drawWheelUsingAverageValues();
     else
       drawWheelUsingAbsoluteValues();
-      
-    drawMetaDataForWheel();
 }
 
-void drawMetaDataForWheel()
-{
-  textSize(15);
-  textAlign(LEFT,CENTER);
-  fill(color(0));
-  stroke(fillColor);
-  
-  String sWheelType[] = { "Hourly", "Daily", "Weekly", "Monthly", "Yearly"};
-  String line_1 = "Wheel Type: " + sWheelType[wheelType].toUpperCase();
-  String line_2 = "Location  : " + locNames[selectedLocationIndex];
-  String line_3 = "Time Frame: [" + getDateString(startDate) + " -" + getDateString(endDate) + "]";
-  
-  
-  text(line_1, 44, displayHeight - 90);
-  text(line_2, 44, displayHeight - 70);
-  text(line_3, 44, displayHeight - 50);
-}
 
-void drawWheelUsingAverageValues()
+vo
+id drawWheelUsingAverageValues()
 {
   Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
  
   int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
   int segments = SEGMENTS[wheelType];
   
-
-  float cx = displayWidth/2 + 80;
-  float cy = displayHeight/2;
   double maxRadius = 650.0;
   double thetaDec = 360.0/segments;
   double radius = maxRadius;
@@ -326,9 +309,6 @@ void drawWheelUsingAverageValues()
 void drawWheelUsingAbsoluteValues()
 {
   
-  
-  float cx = displayWidth/2 + 80;
-  float cy = displayHeight/2;
   Table table_1 = loadTable("data_" + selectedLocationIndex, "csv");
   long[] oneCycleTime = {60*60, 24*60*60, 24*60*60*7, 24*60*60 * 30l, 24*60*60 * 365};
   int[] SEGMENTS = {12, 288, 288 * 7, 288 * 30, 288 * 365}; //1 Segment = 1 time unit; SEGMENTS[i] = Number Of Data-Points in one time-unit
@@ -470,9 +450,6 @@ void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeLis
     r/=2;
     textSize(14);
     textAlign(LEFT, CENTER);
-
-  float cx = displayWidth/2 + 80;
-    float cy = displayHeight/2;
     float x1,y1,x2,y2,y2_2, yPrev, yPrev2;
     x2 = cx + r * cos(0) + 100;
     y1 = (float)(cy + r * sin(0));
@@ -514,9 +491,6 @@ void drawTimeAxis(float r)
     float buffer = 140;
     fill(color(0));
     
-
-  float cx = displayWidth/2 + 80;
-    float cy = displayHeight/2;
     textAlign(CENTER, CENTER);
     drawAxis(cx,cy,cx+r+buffer,cy,true,17,8,"time");
     drawAxis(cx,cy,cx,cy+r+buffer,false,17,8,"time");
@@ -547,9 +521,6 @@ void drawMarkersOnTheCircumference(double r, long end, int wheelType, int segmen
     int i=0;
     double _r = r/2;
     double x1,y1,x2,y2;
-
-    float cx = displayWidth/2 + 80;
-    float cy = displayHeight/2;
     int hTextAlign[] = { LEFT, LEFT, CENTER, RIGHT, RIGHT, RIGHT, CENTER, LEFT};
     int vTextAlign[] = {CENTER, CENTER, BOTTOM, CENTER, CENTER,CENTER, TOP, CENTER};
     while(theta>0)

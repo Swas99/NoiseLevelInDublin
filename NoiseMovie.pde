@@ -3,7 +3,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-
+ 
 class NoiseMovie implements ActionListener
 {
   JButton b1, b2;
@@ -45,11 +45,17 @@ static final int MAX = 1553385600;
   void createPage()
   {   
       
+  for(int i = 1; i<=12; i++)
+    selectedLocations[i] = false;
+  selectedLocations[1] = true;
+    
+    
       l1 = new JLabel("From Date: " + getDateString(MIN));
       l2 = new JLabel("To Date: " + getDateString(MAX));
        
       b1 = new JButton("Play!");
       b2 = new JButton("BACK");
+      b1.setEnabled(false);
       
       fromSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MIN);      
       toSlider = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
@@ -127,7 +133,8 @@ static final int MAX = 1553385600;
     switch(e.getActionCommand())
     {
       case "b1":
-       currentScreen = AVERAGE_NOISE_SCREEN;
+       setupMovie();
+       currentScreen = NOISE_MOVIE_SCREEN;
        needToDraw = true;
        break;
       case "b2":
@@ -152,3 +159,95 @@ static final int MAX = 1553385600;
   }
 }
  
+  float noise = 0;
+  int i_start = -1;
+  int i_end = -1;
+  int loc_i = 1;
+  int marginTop = 44;
+  Table table[] = new Table[13];
+  int buffer_x = 20;
+  int buffer_y = 53;
+  int x = (displayWidth - 2*buffer_x)/4;
+  int y = (displayHeight - 2*buffer_y)/3;
+ 
+  int paddingX = x/10;
+  int paddingY = y/7;
+   int index;
+void setupMovie()
+{
+  
+  for(int i =1; i<=12; i++)
+  {
+    String dataFile = "data_" + i;
+    table[i] = loadTable(dataFile, "csv");  
+  }
+  
+  long currentTime = 0;
+  for (int j = 0; j<table[1].getRowCount(); j++)
+  { 
+      TableRow row = table[1].getRow(j);
+      currentTime = row.getLong(0);
+      if(currentTime<startDate)
+        continue;
+      else if(i_start == -1)
+        i_start = j;
+      i_end = j;
+      if(currentTime>endDate)
+        break;
+  }
+  index = i_start;
+}
+
+
+void playNoiseMovie()
+{
+   if(index>=i_end)
+     return;
+    drawMovieHeader(table[loc_i].getRow(index).getLong(0));
+    for(loc_i = 1; loc_i<=12; loc_i++)
+    {
+        for(int i=buffer_x; i<(buffer_x+ x*4); i+=x)
+        {
+          for(int j=buffer_y + marginTop; j<(buffer_y+ y*3); j+=y)
+          {
+            if(selectedLocations[loc_i])
+            {
+                
+                noise = table[loc_i].getRow(index).getFloat(1);
+                fill(getColorForNoise(noise));
+                rect(i+paddingX,j+paddingY,x-(2*paddingX),y-(2*paddingY));    
+              
+                fill(color(0));
+                if(loc_i == 5)
+                  textSize(13);
+                else
+                  textSize(14);
+                text(
+                locNames[loc_i] + "\nNoise = " + noise, 
+                ((i+paddingX) + (x-(2*paddingX))/2),
+                j+9);  
+                text(
+                locNames[loc_i] + "\nNoise = " + noise, 
+                ((i+paddingX) + (x-(2*paddingX))/2),
+                j+9);    
+            }
+          }
+        }
+    }
+    index++;
+}
+
+
+void drawMovieHeader(long time)
+{
+  String line_1 = "Dublin Noise Levels";
+  String line_2 = "Time: " + getDateString(time);
+  fill(color(0));
+  
+  textAlign(CENTER, CENTER);
+  textSize(26);
+  text(line_1, displayWidth/2, 18);
+  
+  textSize(20);
+  text(line_2, displayWidth/2, 48);
+}
