@@ -65,14 +65,26 @@ void draw() {
 
 void drawLegend()
 {
-    float y = 10;
-    for(float noise = 20;noise<110; noise+=0.1)
+    float y = 20;
+    int i=0;
+    textAlign(LEFT,CENTER);
+    for(double noise = 20;noise<=115; noise+=0.1)
     {
       fillColor = getColorForNoise(noise);
       fill(fillColor);
       stroke(fillColor);
       
-      rect(80,y,20,.3);
+      rect(62,y,20, .3);
+      if(i%100 == 0)
+      {
+        line(62, y, 90, y);
+        text((int)noise + " dB", 90, y);
+      }
+      i++;
       y+=.3;
     }
+    
+    rect(62,y+10,20, 8);
+    line(62, y+10, 90, y+10);
+    text("Data Not Available", 90, y+10);
 }

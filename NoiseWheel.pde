@@ -204,6 +204,28 @@ void loadAndDrawDataForWheel()
       drawWheelUsingAverageValues();
     else
       drawWheelUsingAbsoluteValues();
+      
+    drawMetaData();
+}
+
+void drawMetaData()
+{
+  float y = 20;
+  textAlign(LEFT,CENTER);
+  fill(color(0));
+  stroke(fillColor);
+      
+      rect(62,y,20, .3);
+      if(i%100 == 0)
+      {
+        line(62, y, 90, y);
+        text(, 90, y);
+      }
+      i++;
+      y+=.3;
+    for(double noise = 20;noise<=115; noise+=0.1)
+    {
+    }
 }
 
 void drawWheelUsingAverageValues()
