@@ -216,7 +216,9 @@ void drawMetaDataForWheel()
   String line_2 = "Location  : " + locNames[selectedLocationIndex];
   String line_3 = "Time Frame: [" + getDateString(startDate) + " -" + getDateString(endDate) + "]";
   
-  
+  if(useAverageValues)
+    line_1 += "(Average Values per Segment)";
+    
   text(line_1, 44, displayHeight - 90);
   text(line_2, 44, displayHeight - 70);
   text(line_3, 44, displayHeight - 50);
@@ -471,7 +473,7 @@ void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeLis
     textSize(14);
     textAlign(LEFT, CENTER);
 
-  float cx = displayWidth/2 + 80;
+    float cx = displayWidth/2 + 80;
     float cy = displayHeight/2;
     float x1,y1,x2,y2,y2_2, yPrev, yPrev2;
     x2 = cx + r * cos(0) + 100;
@@ -508,6 +510,7 @@ void drawTimeDataPoints(float r, ArrayList<Double> rList,ArrayList<Long> timeLis
     }
     
 }
+
 void drawTimeAxis(float r)
 {
     r/=2;

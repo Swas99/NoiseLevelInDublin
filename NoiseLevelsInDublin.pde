@@ -15,7 +15,7 @@ int groupBy = -1;
 boolean hideMarkers = false;
 int selectedLocationIndex = 1;
 boolean useAverageValues = false;
-String locNames[] = {"Drumcondra Library_", "Drumcondra Library","Bull Island","Ballyfermot Civic Centre","Ballymun Library","Dublin City Council Rowing Club","Walkinstown Library","Woodstock Gardens","Navan Road","Raheny Library","Irishtown Stadium","Chancery Park","Blessington St. Basin","Dolphins Barn","Sean Moore Road","Mellows Park"};
+String locNames[] = {"Drumcondra Library_", "Drumcondra Library","Bull Island","Ballyfermot Civic Centre","Ballymun Library","Dublin City Council Rowing Club","Walkinstown Library","Woodstock Gardens","Navan Road","Raheny Library","Irishtown Stadium","Chancery Park","Blessington St. Basin"};
 float avgNoiseLevels[] = {-1, 52.73164,50.096222,55.71103,61.510845,54.30555,51.46327,46.688187,54.004524,53.58606,50.208145,60.348946,50.85076};
 boolean selectedLocations[] = {true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
 
@@ -59,12 +59,12 @@ void draw() {
     needToDraw = false;
     break;
     case NOISE_WHEEL_SCREEN:
-    drawLegendForWheel();
+    drawLegend();
     loadAndDrawDataForWheel();
     needToDraw = false;
     break;
     case NOISE_TIMElINE_SCREEN:
-    drawLegendForWheel();
+    drawLegend();
     loadAndDrawDataForTimeline();
     needToDraw = false;
     break;
@@ -75,7 +75,7 @@ void draw() {
 }
  
 
-void drawLegendForWheel()
+void drawLegend()
 {
     float y = 20;
     int i=0;
