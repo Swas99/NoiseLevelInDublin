@@ -29,7 +29,7 @@ void setup() {
   surface.setResizable(true);
   //size(displayWidth, displayHeight);
   
-  fullScreen();
+  fullScreen(P3D);
   //noLoop();
   //smooth();
   
